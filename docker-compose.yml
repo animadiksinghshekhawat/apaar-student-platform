@@ -1,0 +1,19 @@
+# Production-style setup: app behind a reverse proxy that gets HTTPS certificates automatically.
+# 1) set DOMAIN and SECRET_KEY below (or in a .env file)   2) docker compose up -d
+services:
+  app:
+    build: .
+    environment:
+      ENV: production
+      SECRET_KEY: ${SECRET_KEY:?set a random 32+ character SECRET_KEY}
+      SHOW_DEMO_OTP: "0"
+      LOAD_DEMO: "0"
+      DB_PATH: /data/aicte_svp_v2.db
+    volumes: ["data:/data"]
+  proxy:
+    image: caddy:2
+    ports: ["80:80", "443:443"]
+    command: caddy reverse-proxy --from ${DOMAIN:-localhost} --to app:8000
+    depends_on: [app]
+volumes:
+  data:
